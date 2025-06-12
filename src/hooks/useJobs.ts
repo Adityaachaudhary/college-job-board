@@ -1,138 +1,140 @@
 
 import { useState, useEffect } from 'react';
-import { Job, JobApplication } from '@/types/job';
+import { Job } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
+
+interface Application {
+  id: string;
+  jobId: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  coverLetter?: string;
+  appliedAt: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+}
 
 export const useJobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [applications, setApplications] = useState<Application[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
-    loadJobs();
-  }, [user]);
-
-  const loadJobs = () => {
-    try {
-      const savedJobs = localStorage.getItem('jobs');
-      const allJobs: Job[] = savedJobs ? JSON.parse(savedJobs) : [];
-      
-      if (user?.role === 'student') {
-        // Students only see jobs from their college
-        const filteredJobs = allJobs.filter(job => 
-          job.collegeName.toLowerCase() === user.collegeName?.toLowerCase()
-        );
-        setJobs(filteredJobs);
-      } else if (user?.role === 'college') {
-        // Colleges only see their own jobs
-        const filteredJobs = allJobs.filter(job => job.collegeId === user.id);
-        setJobs(filteredJobs);
-      }
-    } catch (error) {
-      console.error('Error loading jobs:', error);
-    } finally {
-      setLoading(false);
+    // Load jobs from localStorage
+    const savedJobs = localStorage.getItem('jobs');
+    if (savedJobs) {
+      setJobs(JSON.parse(savedJobs));
     }
-  };
+
+    // Load applications from localStorage
+    const savedApplications = localStorage.getItem('applications');
+    if (savedApplications) {
+      setApplications(JSON.parse(savedApplications));
+    }
+  }, []);
 
   const createJob = (jobData: Omit<Job, 'id' | 'createdAt' | 'applications'>) => {
-    if (user?.role !== 'college') return false;
-
     const newJob: Job = {
       ...jobData,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
-      collegeId: user.id,
-      collegeName: user.name,
       applications: []
     };
 
-    const savedJobs = localStorage.getItem('jobs');
-    const allJobs: Job[] = savedJobs ? JSON.parse(savedJobs) : [];
-    allJobs.push(newJob);
-    localStorage.setItem('jobs', JSON.stringify(allJobs));
-    
-    loadJobs();
+    const updatedJobs = [...jobs, newJob];
+    setJobs(updatedJobs);
+    localStorage.setItem('jobs', JSON.stringify(updatedJobs));
     return true;
   };
 
   const applyToJob = (jobId: string, coverLetter?: string) => {
-    if (user?.role !== 'student') return false;
-
-    const savedJobs = localStorage.getItem('jobs');
-    const allJobs: Job[] = savedJobs ? JSON.parse(savedJobs) : [];
-    const jobIndex = allJobs.findIndex(job => job.id === jobId);
+    if (!user || user.role !== 'student') return false;
     
-    if (jobIndex === -1) return false;
+    // Check if already applied
+    const existingApplication = applications.find(
+      app => app.jobId === jobId && app.studentId === user.id
+    );
+    
+    if (existingApplication) return false;
 
-    const application: JobApplication = {
+    const application: Application = {
       id: Date.now().toString(),
       jobId,
       studentId: user.id,
       studentName: user.name,
       studentEmail: user.email,
+      coverLetter,
       appliedAt: new Date().toISOString(),
-      status: 'pending',
-      coverLetter
+      status: 'pending'
     };
 
-    if (!allJobs[jobIndex].applications) {
-      allJobs[jobIndex].applications = [];
-    }
+    const updatedApplications = [...applications, application];
+    setApplications(updatedApplications);
+    localStorage.setItem('applications', JSON.stringify(updatedApplications));
 
-    // Check if user already applied
-    const existingApplication = allJobs[jobIndex].applications?.find(
-      app => app.studentId === user.id
-    );
-
-    if (existingApplication) return false;
-
-    allJobs[jobIndex].applications?.push(application);
-    localStorage.setItem('jobs', JSON.stringify(allJobs));
+    // Update job with application
+    const updatedJobs = jobs.map(job => {
+      if (job.id === jobId) {
+        return {
+          ...job,
+          applications: [...(job.applications || []), application.id]
+        };
+      }
+      return job;
+    });
     
-    loadJobs();
+    setJobs(updatedJobs);
+    localStorage.setItem('jobs', JSON.stringify(updatedJobs));
     return true;
   };
 
-  const getApplicationHistory = () => {
-    if (user?.role !== 'student') return [];
-
-    const savedJobs = localStorage.getItem('jobs');
-    const allJobs: Job[] = savedJobs ? JSON.parse(savedJobs) : [];
-    const applications: (JobApplication & { jobTitle: string })[] = [];
-
-    allJobs.forEach(job => {
-      if (job.applications) {
-        job.applications.forEach(app => {
-          if (app.studentId === user.id) {
-            applications.push({
-              ...app,
-              jobTitle: job.title
-            });
-          }
-        });
-      }
-    });
-
-    return applications.sort((a, b) => 
-      new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime()
+  const hasAppliedToJob = (jobId: string) => {
+    if (!user || user.role !== 'student') return false;
+    return applications.some(
+      app => app.jobId === jobId && app.studentId === user.id
     );
   };
 
-  const hasAppliedToJob = (jobId: string) => {
-    if (user?.role !== 'student') return false;
-    
-    const job = jobs.find(j => j.id === jobId);
-    return job?.applications?.some(app => app.studentId === user.id) || false;
+  const getStudentJobs = () => {
+    if (!user || user.role !== 'student') return [];
+    // Students see jobs from their college only
+    return jobs.filter(job => job.collegeName === user.collegeName);
   };
 
+  const getCollegeJobs = () => {
+    if (!user || user.role !== 'college') return [];
+    // Colleges see only their own jobs
+    return jobs.filter(job => job.collegeId === user.id);
+  };
+
+  const getStudentApplications = () => {
+    if (!user || user.role !== 'student') return [];
+    return applications
+      .filter(app => app.studentId === user.id)
+      .map(app => {
+        const job = jobs.find(j => j.id === app.jobId);
+        return {
+          ...app,
+          jobTitle: job?.title || 'Unknown Job',
+          collegeName: job?.collegeName || 'Unknown College'
+        };
+      });
+  };
+
+  const getJobApplications = (jobId: string) => {
+    if (!user || user.role !== 'college') return [];
+    return applications.filter(app => app.jobId === jobId);
+  };
+
+  const filteredJobs = user?.role === 'student' ? getStudentJobs() : getCollegeJobs();
+
   return {
-    jobs,
-    loading,
+    jobs: filteredJobs,
+    applications,
     createJob,
     applyToJob,
-    getApplicationHistory,
     hasAppliedToJob,
-    refreshJobs: loadJobs
+    getStudentApplications,
+    getJobApplications
   };
 };
