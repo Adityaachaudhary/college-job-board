@@ -92,11 +92,11 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Phone className="w-4 h-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 1234567890</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <MapPin className="w-4 h-4" />
-                <span>123 Education St, Campus City</span>
+                <span>New Delhi, India</span>
               </div>
             </div>
           </motion.div>
@@ -110,7 +110,7 @@ const Footer: React.FC = () => {
           className="border-t border-border/50 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center"
         >
           <p className="text-muted-foreground text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-red-500" /> for students and colleges
+            for students and colleges
           </p>
           <p className="text-muted-foreground text-sm mt-2 md:mt-0">
             © 2024 CampusJobs. All rights reserved.
