@@ -30,19 +30,27 @@ const AppContent: React.FC = () => {
       <Navbar />
       
       {/* Navigation buttons */}
-      <div className="bg-card/50 border-b border-border/50 px-4 py-2">
+      <div className="bg-card/50 border-b border-border/50 px-4 py-2 sticky top-16 z-40">
         <div className="max-w-7xl mx-auto flex gap-2">
           <Button
             variant={currentView === 'landing' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setCurrentView('landing')}
+            onClick={() => {
+              console.log('Switching to landing page');
+              setCurrentView('landing');
+            }}
+            className="cursor-pointer"
           >
             Home
           </Button>
           <Button
             variant={currentView === 'dashboard' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setCurrentView('dashboard')}
+            onClick={() => {
+              console.log('Switching to dashboard');
+              setCurrentView('dashboard');
+            }}
+            className="cursor-pointer"
           >
             {user.role === 'college' ? 'Admin Dashboard' : 'Job Dashboard'}
           </Button>
