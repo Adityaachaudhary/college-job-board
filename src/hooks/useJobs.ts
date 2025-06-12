@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Job, JobApplication } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,6 +105,29 @@ export const useJobs = () => {
     );
   };
 
+  const updateApplicationStatus = (applicationId: string, status: 'pending' | 'reviewed' | 'accepted' | 'rejected') => {
+    if (!user || user.role !== 'college') return false;
+
+    const updatedApplications = applications.map(app => 
+      app.id === applicationId ? { ...app, status } : app
+    );
+    
+    setApplications(updatedApplications);
+    localStorage.setItem('applications', JSON.stringify(updatedApplications));
+
+    // Update jobs with the new application status
+    const updatedJobs = jobs.map(job => ({
+      ...job,
+      applications: job.applications?.map(app => 
+        app.id === applicationId ? { ...app, status } : app
+      ) || []
+    }));
+    
+    setJobs(updatedJobs);
+    localStorage.setItem('jobs', JSON.stringify(updatedJobs));
+    return true;
+  };
+
   const getStudentJobs = () => {
     if (!user || user.role !== 'student') return [];
     // Students see jobs from their college only
@@ -146,6 +168,7 @@ export const useJobs = () => {
     applyToJob,
     hasAppliedToJob,
     getStudentApplications,
-    getJobApplications
+    getJobApplications,
+    updateApplicationStatus
   };
 };
