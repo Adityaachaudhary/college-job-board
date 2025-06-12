@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useJobs } from '@/hooks/useJobs';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,7 @@ const CreateJobForm: React.FC<CreateJobFormProps> = ({ onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { createJob } = useJobs();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,6 +38,15 @@ const CreateJobForm: React.FC<CreateJobFormProps> = ({ onClose }) => {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user || user.role !== 'college') {
+      toast({
+        title: "Error",
+        description: "Only college admins can create jobs",
         variant: "destructive",
       });
       return;
@@ -57,6 +67,8 @@ const CreateJobForm: React.FC<CreateJobFormProps> = ({ onClose }) => {
     const jobData = {
       ...formData,
       requirements: requirements.filter(req => req.trim() !== ''),
+      collegeName: user.name,
+      collegeId: user.id,
     };
 
     const success = createJob(jobData);
