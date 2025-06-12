@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Calendar, Building, Clock, Users, Sparkles, Heart, Star } from 'lucide-react';
+import ApplicationManagement from './ApplicationManagement';
+import { MapPin, Calendar, Building, Clock, Users, Sparkles, Heart, Star, FileText } from 'lucide-react';
 
 interface JobCardProps {
   job: Job;
@@ -24,6 +25,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
   const [isApplying, setIsApplying] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [showDialog, setShowDialog] = useState(false);
+  const [showApplications, setShowApplications] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
 
   const hasApplied = hasAppliedToJob(job.id);
@@ -164,79 +166,102 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
             </div>
           )}
 
-          {user?.role === 'student' && (
-            <div className="pt-2">
-              {hasApplied ? (
-                <Button disabled className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-                  <Heart className="w-4 h-4 mr-2" />
-                  Applied ✓
-                </Button>
-              ) : isExpired ? (
-                <Button disabled variant="outline" className="w-full opacity-50">
-                  Deadline Passed
-                </Button>
-              ) : (
-                <Dialog open={showDialog} onOpenChange={setShowDialog}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 transform hover:scale-105">
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Apply Now
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-primary/20">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Star className="w-5 h-5 text-primary" />
-                        Apply for {job.title}
-                      </DialogTitle>
-                      <DialogDescription>
-                        Submit your application to {job.collegeName}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
-                        <Textarea
-                          id="coverLetter"
-                          placeholder="Tell us why you're interested in this position..."
-                          value={coverLetter}
-                          onChange={(e) => setCoverLetter(e.target.value)}
-                          rows={5}
-                          className="border-primary/20 focus:border-primary/50"
-                        />
+          {/* Action buttons */}
+          <div className="pt-2 space-y-2">
+            {user?.role === 'student' && (
+              <>
+                {hasApplied ? (
+                  <Button disabled className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+                    <Heart className="w-4 h-4 mr-2" />
+                    Applied ✓
+                  </Button>
+                ) : isExpired ? (
+                  <Button disabled variant="outline" className="w-full opacity-50">
+                    Deadline Passed
+                  </Button>
+                ) : (
+                  <Dialog open={showDialog} onOpenChange={setShowDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 transform hover:scale-105">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Apply Now
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-primary/20">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Star className="w-5 h-5 text-primary" />
+                          Apply for {job.title}
+                        </DialogTitle>
+                        <DialogDescription>
+                          Submit your application to {job.collegeName}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                          <Textarea
+                            id="coverLetter"
+                            placeholder="Tell us why you're interested in this position..."
+                            value={coverLetter}
+                            onChange={(e) => setCoverLetter(e.target.value)}
+                            rows={5}
+                            className="border-primary/20 focus:border-primary/50"
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <Button variant="outline" onClick={() => setShowDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleApply} 
+                            disabled={isApplying}
+                            className="bg-gradient-to-r from-primary to-primary/80"
+                          >
+                            {isApplying ? (
+                              <>
+                                <motion.div 
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                />
+                                Submitting...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Submit Application
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="outline" onClick={() => setShowDialog(false)}>
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleApply} 
-                          disabled={isApplying}
-                          className="bg-gradient-to-r from-primary to-primary/80"
-                        >
-                          {isApplying ? (
-                            <>
-                              <motion.div 
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
-                              />
-                              Submitting...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-4 h-4 mr-2" />
-                              Submit Application
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-          )}
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </>
+            )}
+
+            {user?.role === 'college' && (
+              <Dialog open={showApplications} onOpenChange={setShowApplications}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full gap-2">
+                    <FileText className="w-4 h-4" />
+                    View Applications ({job.applications?.length || 0})
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Applications for {job.title}</DialogTitle>
+                    <DialogDescription>
+                      Manage applications received for this job posting
+                    </DialogDescription>
+                  </DialogHeader>
+                  <ApplicationManagement jobId={job.id} jobTitle={job.title} />
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </CardContent>
       </Card>
     </motion.div>

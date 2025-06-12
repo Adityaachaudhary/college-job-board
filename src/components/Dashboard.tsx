@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useJobs } from '@/hooks/useJobs';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import JobCard from './JobCard';
 import CreateJobForm from './CreateJobForm';
-import { Search, Plus, Briefcase, Users, Calendar, CheckCircle } from 'lucide-react';
+import { Search, Plus, Briefcase, Users, Calendar, CheckCircle, XCircle, Clock, Sparkles, Trophy, Heart } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -20,6 +20,7 @@ const Dashboard: React.FC = () => {
   const [filterType, setFilterType] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [activeTab, setActiveTab] = useState('jobs');
+  const [celebratingAppId, setCelebratingAppId] = useState<string | null>(null);
 
   const studentApplications = user?.role === 'student' ? getStudentApplications() : [];
 
@@ -36,6 +37,60 @@ const Dashboard: React.FC = () => {
     applications: user?.role === 'student' ? studentApplications.length : 
                   jobs.reduce((acc, job) => acc + (job.applications?.length || 0), 0),
     activeJobs: jobs.filter(job => new Date(job.deadline) > new Date()).length,
+  };
+
+  const createConfetti = () => {
+    const confettiCount = 100;
+    const confettiColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
+    
+    for (let i = 0; i < confettiCount; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti-celebration fixed w-3 h-3 pointer-events-none z-50';
+      confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.top = '-20px';
+      confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      confetti.style.animation = `confetti-fall 3s ease-out forwards`;
+      document.body.appendChild(confetti);
+      
+      setTimeout(() => {
+        confetti.remove();
+      }, 3000);
+    }
+  };
+
+  const handleStatusClick = (application: any) => {
+    if (application.status === 'accepted') {
+      setCelebratingAppId(application.id);
+      createConfetti();
+      setTimeout(() => setCelebratingAppId(null), 3000);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 cursor-pointer';
+      case 'rejected': return 'bg-gradient-to-r from-red-500 to-rose-500 text-white hover:from-red-600 hover:to-rose-600 cursor-pointer';
+      case 'reviewed': return 'bg-gradient-to-r from-blue-500 to-sky-500 text-white';
+      default: return 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'accepted': return <Trophy className="w-4 h-4" />;
+      case 'rejected': return <XCircle className="w-4 h-4" />;
+      case 'reviewed': return <CheckCircle className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getStatusMessage = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'Congratulations! 🎉';
+      case 'rejected': return 'Try next time! 💪';
+      default: return status;
+    }
   };
 
   return (
@@ -190,30 +245,65 @@ const Dashboard: React.FC = () => {
                 {studentApplications.length > 0 ? (
                   <div className="space-y-4">
                     {studentApplications.map((application) => (
-                      <Card key={application.id}>
-                        <CardContent className="pt-6">
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-2">
-                              <h3 className="font-semibold text-lg">{application.jobTitle}</h3>
-                              <p className="text-muted-foreground">{application.collegeName}</p>
-                              <p className="text-sm text-muted-foreground">
-                                Applied: {new Date(application.appliedAt).toLocaleDateString()}
-                              </p>
-                              {application.coverLetter && (
-                                <p className="text-sm bg-muted p-3 rounded-md mt-2">
-                                  <strong>Cover Letter:</strong> {application.coverLetter}
+                      <motion.div
+                        key={application.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={celebratingAppId === application.id ? 'celebration-glow' : ''}
+                      >
+                        <Card className="hover:shadow-lg transition-all duration-300">
+                          <CardContent className="pt-6">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-3 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-semibold text-lg">{application.jobTitle}</h3>
+                                  {application.status === 'accepted' && <Sparkles className="w-5 h-5 text-yellow-500 animate-pulse" />}
+                                </div>
+                                <p className="text-muted-foreground">{application.collegeName}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Applied: {new Date(application.appliedAt).toLocaleDateString()}
                                 </p>
-                              )}
+                                {application.coverLetter && (
+                                  <p className="text-sm bg-muted p-3 rounded-md mt-2">
+                                    <strong>Cover Letter:</strong> {application.coverLetter}
+                                  </p>
+                                )}
+                                {application.status === 'rejected' && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 p-3 rounded-lg"
+                                  >
+                                    <p className="text-rose-700 font-medium text-center">
+                                      "Don't give up! Every 'no' brings you closer to your 'yes'. Keep applying and stay positive! 💪✨"
+                                    </p>
+                                  </motion.div>
+                                )}
+                                {application.status === 'accepted' && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-3 rounded-lg"
+                                  >
+                                    <p className="text-green-700 font-medium text-center flex items-center justify-center gap-2">
+                                      <Trophy className="w-5 h-5" />
+                                      "Congratulations! Your hard work paid off! Time to shine! 🌟🎉"
+                                      <Heart className="w-5 h-5" />
+                                    </p>
+                                  </motion.div>
+                                )}
+                              </div>
+                              <Badge 
+                                className={`${getStatusColor(application.status)} font-medium px-3 py-2 flex items-center gap-1 capitalize ml-4`}
+                                onClick={() => handleStatusClick(application)}
+                              >
+                                {getStatusIcon(application.status)}
+                                {getStatusMessage(application.status)}
+                              </Badge>
                             </div>
-                            <Badge 
-                              variant={application.status === 'pending' ? 'outline' : 'default'}
-                              className="capitalize"
-                            >
-                              {application.status}
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
