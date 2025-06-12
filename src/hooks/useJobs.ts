@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Job } from '@/types/job';
+import { Job, JobApplication } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Application {
@@ -57,7 +57,7 @@ export const useJobs = () => {
     
     if (existingApplication) return false;
 
-    const application: Application = {
+    const applicationData: Application = {
       id: Date.now().toString(),
       jobId,
       studentId: user.id,
@@ -68,16 +68,27 @@ export const useJobs = () => {
       status: 'pending'
     };
 
-    const updatedApplications = [...applications, application];
+    const updatedApplications = [...applications, applicationData];
     setApplications(updatedApplications);
     localStorage.setItem('applications', JSON.stringify(updatedApplications));
 
-    // Update job with application
+    // Update job with application - convert to JobApplication format for consistency
+    const jobApplication: JobApplication = {
+      id: applicationData.id,
+      jobId: applicationData.jobId,
+      studentId: applicationData.studentId,
+      studentName: applicationData.studentName,
+      studentEmail: applicationData.studentEmail,
+      appliedAt: applicationData.appliedAt,
+      status: applicationData.status,
+      coverLetter: applicationData.coverLetter
+    };
+
     const updatedJobs = jobs.map(job => {
       if (job.id === jobId) {
         return {
           ...job,
-          applications: [...(job.applications || []), application.id]
+          applications: [...(job.applications || []), jobApplication]
         };
       }
       return job;
