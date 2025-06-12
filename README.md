@@ -1,11 +1,11 @@
 
 # CampusJobs - College Job Portal
 
-A modern, responsive web application that connects college students with job opportunities posted by their colleges and partner organizations. Built with React, TypeScript, and a focus on beautiful UI/UX design.
+A modern, responsive web application that connects college students with job opportunities posted by their colleges and partner organisations. Built with React, TypeScript, and a focus on beautiful UI/UX design.
 
 ## 🚀 Live Demo
 
-**URL**: https://lovable.dev/projects/cce7f503-0279-48d6-be48-87727cdc226c
+**URL**: https://college-job-board.vercel.app/
 
 ## ✨ Features
 
@@ -173,7 +173,7 @@ npm run preview
 - CRUD operations for job postings
 - Advanced filtering and search
 - Real-time application tracking
-- Status management (pending/reviewed/accepted/rejected)
+- Status management (pending/accepted/rejected)
 
 ### Application System
 - One-click job applications
@@ -209,8 +209,6 @@ npm run preview
 - **File Uploads**: Resume and document upload functionality
 - **Video Applications**: Video cover letter support
 - **Analytics Dashboard**: Advanced metrics and reporting
-- **Mobile App**: React Native mobile application
-- **AI Matching**: Intelligent job-student matching algorithm
 
 ## 📝 Contributing
 
@@ -224,9 +222,6 @@ npm run preview
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Support
-
-For support, email support@campusjobs.com or join our Discord community.
 
 ## 🙏 Acknowledgments
 
@@ -234,8 +229,7 @@ For support, email support@campusjobs.com or join our Discord community.
 - **Lucide React** for the amazing icon set
 - **Framer Motion** for smooth animations
 - **Tailwind CSS** for the utility-first CSS framework
-- **Lovable** for the development platform
 
 ---
 
-Made with ❤️ for students and colleges everywhere.
+
